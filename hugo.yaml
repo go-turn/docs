@@ -5,7 +5,7 @@
 # code the pages describe, or "main" while no release is tagged. The CI sets it
 # through --baseURL, from params.docs.version below; this default is the same
 # build.
-baseURL: "https://go-turn.github.io/docs/0.3/"
+baseURL: "https://go-turn.github.io/docs/main/"
 title: "go-turn docs"
 
 # themes/hextra is the tannevaled/hextra fork, pinned at a release tag as a
@@ -49,8 +49,10 @@ cascade:
 
 params:
   docs:
-    # The release the pages describe: the CI builds /docs/0.3/ from it.
-    version: "v0.3.0"
+    # "main" while the pages follow the code: the CI publishes /docs/main/, the
+    # path docscheck compares with /docs/latest/. Set it to a release
+    # (v0.3.0 -> /docs/0.3/) when a version has to stay frozen.
+    version: "main"
   description: "STUN and TURN in pure Go: a relay for WebRTC peers that cannot reach each other directly, short-lived credentials behind an OpenID Connect login, and a gRPC rendezvous so two peers meet with one link."
   navbar:
     displayTitle: true
@@ -66,4 +68,4 @@ params:
     width: normal
   editURL:
     enable: true
-    base: "https://github.com/go-turn/docs/edit/main/content/en"
+    base: "https://github.com/go-turn/docs/edit/main/content"
