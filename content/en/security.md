@@ -66,8 +66,10 @@ A PROXY header is accepted only from the prefixes given to `--proxy-protocol-fro
 a header from any other source is never honoured, and a connection from a listed
 prefix without a valid header is closed.
 
-## Open items {#open-items}
+## Reporting a vulnerability {#reporting}
 
-The repository has no `SECURITY.md` yet, so there is no stated private channel for
-reporting a vulnerability; what is open is in the
-[tracker](https://github.com/go-turn/turn/issues).
+Report privately through GitHub's private vulnerability reporting, from the
+[Security tab](https://github.com/go-turn/turn/security) of go-turn/turn; do not
+open a public issue for it. In scope: `turnd`, the relay policy, the credentials
+and the rendezvous. Only the latest minor version is supported. The full policy is
+`SECURITY.md` in that repository.
