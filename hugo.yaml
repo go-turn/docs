@@ -1,0 +1,69 @@
+# go-turn docs documentation — Hugo + Hextra, built like go-crdt/docs.
+#
+# Each documentation version is a separate build under
+# https://go-turn.github.io/docs/<version>/, where <version> is the minor version of the
+# code the pages describe, or "main" while no release is tagged. The CI sets it
+# through --baseURL, from params.docs.version below; this default is the same
+# build.
+baseURL: "https://go-turn.github.io/docs/0.3/"
+title: "go-turn docs"
+
+# themes/hextra is the tannevaled/hextra fork, pinned at a release tag as a
+# submodule: upstream Hextra plus opt-in features (partial menu items, combos,
+# related-sites menu, page subtitle and history, darkreaderLock).
+theme: hextra
+
+defaultContentLanguage: en
+defaultContentLanguageInSubdir: false
+
+languages:
+  en:
+    label: "English"
+    contentDir: content/en
+    weight: 1
+
+enableRobotsTXT: true
+# Git history dates every page: "Last updated on" at the foot of each one.
+enableGitInfo: true
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+    parser:
+      attribute:
+        title: true
+        block: true
+  highlight:
+    noClasses: false
+
+# The content is NOT under content/en/docs. This site is served AT /docs/,
+# so a "docs" section would make every page /docs/docs/… . Hextra picks its
+# documentation layout from the section being called "docs", so with the
+# content at the root the type is cascaded instead.
+cascade:
+  - target:
+      path: "/**"
+    params:
+      type: docs
+
+params:
+  docs:
+    # The release the pages describe: the CI builds /docs/0.3/ from it.
+    version: "v0.3.0"
+  description: "STUN and TURN in pure Go: a relay for WebRTC peers that cannot reach each other directly, short-lived credentials behind an OpenID Connect login, and a gRPC rendezvous so two peers meet with one link."
+  navbar:
+    displayTitle: true
+    displayLogo: false
+  theme:
+    default: system
+    displayToggle: true
+  footer:
+    enable: true
+    displayCopyright: false
+    displayPoweredBy: false
+  page:
+    width: normal
+  editURL:
+    enable: true
+    base: "https://github.com/go-turn/docs/edit/main/content/en"
