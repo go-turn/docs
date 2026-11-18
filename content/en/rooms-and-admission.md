@@ -29,6 +29,7 @@ Only admitted guests count against `--max-guests` and produce `sys.join`.
 | `RoomCredentials{room}` | an admitted peer | `IceServers` expiring with the room, charged to the host |
 | `CloseRoom{room}` | the host | ends the room |
 | `HandOver{room,to}` | the host | gives the host role to an admitted, connected guest |
+| `AppointCoHost{room,peer}` / `RevokeCoHost{room,peer}` | the host only | an admitted guest may admit, deny and close beside the host; revoking is immediate |
 | `Reclaim{room}` | a session token of the host's subject | the host role back, or an admitted guest's seat after a handover |
 
 ## System events {#system-events}
@@ -44,6 +45,7 @@ Delivered on the room's one stream (`Room`), events down, messages up:
 | `sys.leave` | |
 | `sys.closed` | the room ended |
 | `sys.error` | a message the other peer could not take; the stream stays open |
+| `sys.cohost-added`, `sys.cohost-removed` | to everyone: body `{"peer":"<peer>"}` |
 | `sys.host-changed` | to everyone: the host role moved, body `{"from":"<peer>","to":"<peer>"}` |
 
 Ending the stream is leaving. A second stream for one peer is refused with
@@ -62,11 +64,23 @@ sent to `"host"` meanwhile are queued for it (up to `--max-queue`). Only a messa
 written to the old connection before the server noticed it was dead can be lost.
 
 **Past the grace**, or when the host calls `HandOver{room,to}` first, the
-**earliest-admitted guest still connected** becomes the host. There is no
+earliest-appointed co-host still connected, else the **earliest-admitted guest still
+connected**, becomes the host. There is no
 version-vector election: a rejoin syncs both ways, so the collab layer does not need
 it. A pending, denied or disconnected guest is never promoted; if nobody qualifies,
 the room closes. A guest cannot promote itself, and a non-host cannot `HandOver`
 (`PERMISSION_DENIED`). There is exactly one host at any moment.
+
+**Co-hosts.** The host, and only the host, appoints an admitted guest
+(`AppointCoHost`) and revokes it (`RevokeCoHost`); a pending or denied peer cannot be
+appointed. A co-host may admit, deny (not the host or another co-host) and close the
+room, and its room credentials are charged to its own subject if it presented a
+session, else to the host's, never past the room's TTL. A co-host cannot appoint,
+revoke or hand over: there is exactly one active host. Everyone receives
+`sys.cohost-added` / `sys.cohost-removed` (`{"peer":"<id>"}`). Knocks, joins and
+leaves go to the host and to every co-host, so a waiting guest's expiry
+(`MaxPending`, `PendingTTL`) now has several people to answer it. On a host loss the
+earliest-appointed co-host still connected is promoted before any guest.
 
 What changes:
 
