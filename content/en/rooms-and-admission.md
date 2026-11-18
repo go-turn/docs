@@ -18,7 +18,26 @@ bits, and a guest who joins with it is **pending**:
 - the host sees `sys.knock` (`from` = the guest, `body` = its display name, at most
   64 characters, no control characters) and decides.
 
-Only admitted guests count against `--max-guests` and produce `sys.join`.
+Only admitted guests count against the room's cap and produce `sys.join`.
+
+## How many guests {#capacity}
+
+The cap counts guests admitted **at once**: a guest that leaves, is denied, or whose
+absence expires frees its place. `CreateRoom{max_guests}` sets the room's cap
+(default 8; `--max-guests` is the server's ceiling, above it is `INVALID_ARGUMENT`).
+`--max-admissions` (default 4 times the ceiling) bounds the admissions of the room's
+whole life, with a refusal that says so. A guest whose connection dropped keeps its
+place, peer ID and token for `--guest-grace` (30 s) and resumes by opening a stream
+with the same token: no knock, nothing consumed (a half-close is a goodbye). A host
+handover consumes no admission. A star's real limit is the host's uplink.
+
+## The address "host" {#host-alias}
+
+Breaking since v0.7: no peer is named `"host"`; the creator has an ordinary ID, `from`
+and every event carry real IDs. `"host"` is only an alias for the current host as the
+`to` of a message, the same for every sender; the host using it gets `sys.error`
+`InvalidArgument`. A client that sends from `"host"` is refused with
+`PERMISSION_DENIED`.
 
 ## Deciding {#deciding}
 
