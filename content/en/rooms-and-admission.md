@@ -28,6 +28,8 @@ Only admitted guests count against `--max-guests` and produce `sys.join`.
 | `Deny{room,peer}` | the host | refuses a pending guest, or removes an admitted one: its token is dead |
 | `RoomCredentials{room}` | an admitted peer | `IceServers` expiring with the room, charged to the host |
 | `CloseRoom{room}` | the host | ends the room |
+| `HandOver{room,to}` | the host | gives the host role to an admitted, connected guest |
+| `Reclaim{room}` | a session token of the host's subject | the host role back, or an admitted guest's seat after a handover |
 
 ## System events {#system-events}
 
@@ -42,9 +44,53 @@ Delivered on the room's one stream (`Room`), events down, messages up:
 | `sys.leave` | |
 | `sys.closed` | the room ended |
 | `sys.error` | a message the other peer could not take; the stream stays open |
+| `sys.host-changed` | to everyone: the host role moved, body `{"from":"<peer>","to":"<peer>"}` |
 
 Ending the stream is leaving. A second stream for one peer is refused with
 `ALREADY_EXISTS`.
+
+## A room outlives its host {#host-handover}
+
+Collaboration is peer to peer, so a room must not die with the browser that opened
+it. When the host's stream ends, the room lives on for `--host-grace` (default
+`2m`; a negative value restores the old behaviour: the host leaving closes the room).
+
+**Within the grace** the host, back as the same person, keeps the role and nothing
+changes for the others: `Reclaim` with a session token of the host's subject (a new
+host token, the old one dead), or a new `Room` stream with its own token. Messages
+sent to `"host"` meanwhile are queued for it (up to `--max-queue`). Only a message
+written to the old connection before the server noticed it was dead can be lost.
+
+**Past the grace**, or when the host calls `HandOver{room,to}` first, the
+**earliest-admitted guest still connected** becomes the host. There is no
+version-vector election: a rejoin syncs both ways, so the collab layer does not need
+it. A pending, denied or disconnected guest is never promoted; if nobody qualifies,
+the room closes. A guest cannot promote itself, and a non-host cannot `HandOver`
+(`PERMISSION_DENIED`). There is exactly one host at any moment.
+
+What changes:
+
+- The promoted peer keeps its **peer ID and token**, so the site identity a collab
+  layer derives from the ID is stable. It gains `Admit`, `Deny`, `HandOver`,
+  `CloseRoom`. The old host's token is dead.
+- Everyone, the old host included, receives `sys.host-changed {from,to}`. The new
+  host receives `sys.knock` again for each pending guest, `sys.join` for each
+  admitted one, then the messages queued for the old host, in order. `"host"` as a
+  guest's destination always means the current host.
+- `RoomCredentials` are charged to the current host's person if it said who it was
+  when it knocked (`x-turn-session` metadata, `client.WithSession`), else to the
+  person who opened the room. The room's TTL is **never** extended.
+- The old host returning after a promotion calls `Reclaim`: same peer ID, an
+  **admitted** guest of the new host (no knock; the new host sees `sys.join`).
+
+On `sys.host-changed`, the collab layer does the following: the new host starts its
+`collab.Server` seeded from its own replica; the others rejoin it through the
+rendezvous with their version vector, and a guest that is ahead pushes what it
+holds. In peer-to-peer mode nothing may purge history.
+
+In the Go client (`rendezvous/client`): `Room.IsHost()`, `Room.CurrentHost()`,
+`Event.HostChange()`, `Room.HandOver`, `client.Reclaim`, and the `WithSession` join
+option.
 
 ## What breaks the protocol {#protocol-breaks}
 
