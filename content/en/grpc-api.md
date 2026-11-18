@@ -37,7 +37,7 @@ Only browser navigations stay HTTP:
 | RPC | token | returns |
 |---|---|---|
 | `Credentials` | session, or issuer access token | `IceServers{ice_servers[{urls,username,credential}], ttl}` |
-| `CreateRoom` | session or access token | `{room, peer:"host", token, expires}`; the room ID is 128 random bits |
+| `CreateRoom` | session or access token | `{room, peer:"g1", token, expires, max_guests}`: the creator's peer ID is ordinary (breaking since v0.7: it was `"host"`); the room ID is 128 random bits; the request may carry `max_guests` |
 | `JoinRoom{room,name}` | none: the room ID | `{peer, host, token, expires, pending:true}`; the guest is **pending** |
 | `Admit{room,peer}` / `Deny{room,peer}` | host token | admit a pending guest / refuse it (or remove an admitted one): its token is dead |
 | `RoomCredentials{room}` | an **admitted** peer's token | `IceServers` expiring with the room, charged to the host |
