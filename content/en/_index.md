@@ -30,6 +30,7 @@ uses for live collaboration over [go-crdt/collab](https://github.com/go-crdt/col
 | prove a deployed relay works | [Checking a deployment]({{< relref "checking-a-deployment.md" >}}) |
 | call the API from a browser or a Go program | [The gRPC API]({{< relref "grpc-api.md" >}}) |
 | understand what a room link allows | [Rooms and admission]({{< relref "rooms-and-admission.md" >}}) |
+| send traces, metrics and logs to a collector | [Observability]({{< relref "observability.md" >}}) |
 | know what the relay refuses to do | [Security policy]({{< relref "security.md" >}}) |
 | use the packages directly | [Packages]({{< relref "packages.md" >}}) |
 
